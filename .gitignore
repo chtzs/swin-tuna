@@ -1,0 +1,7 @@
+experiments/
+pretrain/*.pth
+.vscode/
+*.egg-info/
+.DS_STORE
+datasets/
+*.pyc
