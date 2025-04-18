@@ -23,6 +23,8 @@ class SwinTransformerTuna(BaseModule):
         self.freeze_parameters()
 
     def freeze_parameters(self):
+        # Original dropout helps model
+        # self.model.eval()
         for name, param in self.model.named_parameters():
             if 'tuna_' not in name:
                 param.requires_grad = False

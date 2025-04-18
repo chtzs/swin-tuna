@@ -1,6 +1,8 @@
 /experiments/
 /pretrain/*.pth
 /datasets/
+/tmp/
+*.pdf
 .vscode/
 *.egg-info/
 .DS_STORE

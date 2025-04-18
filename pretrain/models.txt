@@ -1,2 +1,4 @@
 segment anything
 https://dl.fbaipublicfiles.com/segment_anything/sam_vit_l_0b3195.pth
+SwinTransformer
+https://github.com/SwinTransformer/storage/releases/download/v1.0.0/swin_base_patch4_window7_224_22k.pth
