@@ -4,3 +4,5 @@ from .uecfoodpix import UECFoodPixDataset
 from .swin_tuna import SwinTransformerTuna
 from .swin_mona import SwinTransformerMona
 from .swin_tuna_sam import SwinTransformerTunaSAM
+from .vit_sam import ViTSAM
+from .vit_tuna import ViTTuna

@@ -25,6 +25,7 @@ class ImageEncoderViT(nn.Module):
         num_heads: int = 12,
         mlp_ratio: float = 4.0,
         out_chans: int = 256,
+        out_indices: Tuple[int] = (2, 5, 8, 11),
         qkv_bias: bool = True,
         norm_layer: Type[nn.Module] = nn.LayerNorm,
         act_layer: Type[nn.Module] = nn.GELU,
@@ -54,6 +55,7 @@ class ImageEncoderViT(nn.Module):
         """
         super().__init__()
         self.img_size = img_size
+        self.out_indices = out_indices
 
         self.patch_embed = PatchEmbed(
             kernel_size=(patch_size, patch_size),
@@ -85,6 +87,7 @@ class ImageEncoderViT(nn.Module):
             )
             self.blocks.append(block)
 
+        self.tuna_final_norm = LayerNorm2d(embed_dim)
         self.neck = nn.Sequential(
             nn.Conv2d(
                 embed_dim,
@@ -108,12 +111,16 @@ class ImageEncoderViT(nn.Module):
         if self.pos_embed is not None:
             x = x + self.pos_embed
 
-        for blk in self.blocks:
+        out = []
+        for i, blk in enumerate(self.blocks):
             x = blk(x)
+            if i in self.out_indices:
+                if i == self.out_indices[-1]:
+                    out.append(self.tuna_final_norm(x.permute(0, 3, 1, 2)))
+                else:
+                    out.append(x.permute(0, 3, 1, 2))
 
-        x = self.neck(x.permute(0, 3, 1, 2))
-
-        return x
+        return out
 
 
 class Block(nn.Module):
@@ -148,6 +155,7 @@ class Block(nn.Module):
                 positional parameter size.
         """
         super().__init__()
+        self.dim = dim
         self.norm1 = norm_layer(dim)
         self.attn = Attention(
             dim,

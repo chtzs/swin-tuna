@@ -66,7 +66,7 @@ class Tuna(nn.Module):
         x = x + identity
         return x
         
-    def forward(self, x: Tensor, hw_shapes: tuple):
+    def forward(self, x: Tensor, hw_shapes: tuple) -> Tensor:
         assert len(x.shape) == 3, 'Wrong shape!'
         
         identity = x
@@ -74,6 +74,52 @@ class Tuna(nn.Module):
         x = self.pwconv1(x)
         # Conv
         x = self.conv(x, hw_shapes)
+        # Upsample
+        x = self.pwconv2(x)
+        
+        x = self.act(x)
+        x = self.dropout(x)
+        x = x + identity
+        
+        return x
+
+class Tuna2D(nn.Module):
+    def __init__(self, in_features, hidden_dim=64, conv_size=3):
+        super().__init__()
+        # Follow ConvNeXt
+        self.hidden_dim = hidden_dim
+        # depth-wise convolution
+        self.conv2d = nn.Conv2d(hidden_dim, hidden_dim, kernel_size=conv_size, padding=conv_size // 2, groups=hidden_dim)
+        self.norm = nn.LayerNorm(hidden_dim, eps=1e-6)
+        
+        # point-wise convolution
+        self.pwconv1 = nn.Linear(in_features, hidden_dim)
+        self.pwconv2 = nn.Linear(hidden_dim, in_features)
+        self.act = nn.GELU()
+        self.dropout = nn.Dropout(p=0.1)
+        
+        # init
+        c2_xavier_fill(self.pwconv1)
+        c2_xavier_fill(self.pwconv2)
+        
+    def conv(self, x: Tensor) -> Tensor:
+        identity = x
+        
+        x = self.norm(x)
+        # B x H x W x C => B x C x H x W => B x H x W x C 
+        x = self.conv2d(x.permute(0, 3, 1, 2)).permute(0, 2, 3, 1)
+        
+        x = x + identity
+        return x
+        
+    def forward(self, x: Tensor) -> Tensor:
+        assert len(x.shape) == 4, 'Wrong shape!'
+        
+        identity = x
+        # Downsample
+        x = self.pwconv1(x)
+        # Conv
+        x = self.conv(x)
         # Upsample
         x = self.pwconv2(x)
         

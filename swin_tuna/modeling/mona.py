@@ -63,3 +63,37 @@ class Mona(nn.Module):
         project2 = self.project2(nonlinear)
 
         return identity + project2
+    
+
+class Mona2D(nn.Module):
+    def __init__(self,
+                 in_dim,
+                 factor=4):
+        super().__init__()
+
+        self.project1 = nn.Linear(in_dim, 64)
+        self.nonlinear = F.gelu
+        self.project2 = nn.Linear(64, in_dim)
+
+        self.dropout = nn.Dropout(p=0.1)
+
+        self.adapter_conv = MonaOp(64)
+
+        self.norm = nn.LayerNorm(in_dim)
+        self.gamma = nn.Parameter(torch.ones(in_dim) * 1e-6)
+        self.gammax = nn.Parameter(torch.ones(in_dim))
+
+    def forward(self, x):
+        identity = x
+
+        x = self.norm(x) * self.gamma + x * self.gammax
+
+        project1 = self.project1(x)
+
+        project1 = self.adapter_conv(project1.permute(0, 3, 1, 2)).permute(0, 2, 3, 1)
+        
+        nonlinear = self.nonlinear(project1)
+        nonlinear = self.dropout(nonlinear)
+        project2 = self.project2(nonlinear)
+
+        return identity + project2

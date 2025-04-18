@@ -56,6 +56,6 @@ print("Done.")
 for i in range(10):
     a = torch.rand((4, 3, 384, 384)).cuda()
     b = model(a)
-    re = [x.shape for x in b]
-    print(re)
+    # re = [x.shape for x in b]
+    print(b.shape)
 time.sleep(10)
