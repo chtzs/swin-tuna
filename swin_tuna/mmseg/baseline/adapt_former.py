@@ -96,7 +96,7 @@ class SwinTransformerAdapter(BaseModule):
             
             return x
         
-        for i, sequence_block in enumerate(self.model.stages):
+        for sequence_block in self.model.stages:
             sequence_block: SwinBlockSequence
             for target in sequence_block.blocks:
                 target: SwinBlock

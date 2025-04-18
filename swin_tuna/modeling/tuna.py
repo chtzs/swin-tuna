@@ -8,7 +8,7 @@ from ..utils.model_utils import c2_xavier_fill
 
 _size_2_t = Union[int, Tuple[int, int]]
 
-# 49.63
+# 50.27
 class Conv2d(nn.Module):
     def __init__(
         self,

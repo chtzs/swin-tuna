@@ -1,8 +1,11 @@
-from .custom_loading import LoadAnnotationsCustom
-from .foodseg103 import FoodSeg103Dataset
-from .uecfoodpix import UECFoodPixDataset
+from .datasets.custom_loading import LoadAnnotationsCustom
+from .datasets.foodseg103 import FoodSeg103Dataset
+from .datasets.uecfoodpix import UECFoodPixDataset
+
 from .swin_tuna import SwinTransformerTuna
-from .swin_mona import SwinTransformerMona
-from .swin_tuna_sam import SwinTransformerTunaSAM
-from .vit_sam import ViTSAM
-from .vit_tuna import ViTTuna
+
+from .baseline.mona import SwinTransformerMona
+from .baseline.adapt_former import SwinTransformerAdapter
+from .baseline.bitfit import SwinTransformerBitFit
+from .baseline.vpt import PromptedSwinTransformer
+from .baseline.linear_probing import SwinTransformerFixed

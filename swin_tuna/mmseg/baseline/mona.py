@@ -1,8 +1,11 @@
 import torch
 import torch.nn as nn
 import torch.nn.functional as F
-from torch import Tensor
-from typing import Union, Tuple
+
+from mmseg.registry import MODELS
+from mmseg.models.backbones.swin import SwinTransformer, SwinBlock, SwinBlockSequence
+from mmengine.model import BaseModule
+
 #49.31
 class MonaOp(nn.Module):
     def __init__(self, in_features):
@@ -97,3 +100,64 @@ class Mona2D(nn.Module):
         project2 = self.project2(nonlinear)
 
         return identity + project2
+
+@MODELS.register_module()
+class SwinTransformerMona(BaseModule):
+    def __init__(self, **kwargs):
+        super().__init__()
+        # Inject module into SwinTransformer
+        self.model = self.make_model(kwargs)
+        self.adapt_model()
+        # Freeze parameters
+        self.freeze_parameters()
+        
+    def make_model(self, kwargs)-> SwinTransformer:
+        kwargs['type'] = 'SwinTransformer'
+        model = MODELS.build(kwargs)
+        return model
+        
+    def adapt_model(self):
+        def forward(self, x, hw_shape):
+            identity = x
+            x = self.norm1(x)
+            x = self.attn(x, hw_shape)
+
+            x = x + identity
+            x = self.my_module_1(x, hw_shape)
+            
+            identity = x
+            x = self.norm2(x)
+            x = self.ffn(x, identity=identity)
+
+            x = self.my_module_2(x, hw_shape)
+            return x
+        
+        for sequence_block in self.model.stages:
+            sequence_block: SwinBlockSequence
+            for target in sequence_block.blocks:
+                target: SwinBlock
+                dim = target.ffn.embed_dims
+                setattr(target, 'my_module_1', Mona(dim, 8).cuda())
+                setattr(target, 'my_module_2', Mona(dim, 8).cuda())
+        
+        # Search for SwinBlock
+        SwinBlock.forward = forward
+
+
+    def freeze_parameters(self):
+        for name, param in self.model.named_parameters():
+            if 'my_module' not in name:
+                param.requires_grad = False
+            else:
+                param.requires_grad = True
+                
+    def train(self, mode=True):
+        """Convert the model into training mode while keep layers freezed."""
+        super().train(mode=mode)
+        
+        self.freeze_parameters()
+            
+        
+    def forward(self, x):
+        x = self.model(x)
+        return x
