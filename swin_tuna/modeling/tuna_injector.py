@@ -3,6 +3,7 @@ import torch.nn as nn
 import torch.nn.functional as F
 
 from mmseg.models.backbones.swin import SwinTransformer, SwinBlockSequence, SwinBlock
+from .tuna import Tuna
         
 
 def inject_attributes(target: nn.Module, conv_size, dim, hidden_dim, device=None, clazz=Tuna):
