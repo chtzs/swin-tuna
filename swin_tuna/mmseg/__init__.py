@@ -7,5 +7,4 @@ from .swin_tuna import SwinTransformerTuna
 from .baseline.mona import SwinTransformerMona
 from .baseline.adapt_former import SwinTransformerAdapter
 from .baseline.bitfit import SwinTransformerBitFit
-from .baseline.vpt import PromptedSwinTransformer
 from .baseline.linear_probing import SwinTransformerFixed

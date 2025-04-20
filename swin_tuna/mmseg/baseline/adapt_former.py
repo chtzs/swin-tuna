@@ -6,7 +6,7 @@ import torch.nn.functional as F
 
 from mmseg.registry import MODELS
 from mmseg.models.backbones.swin import SwinTransformer, SwinBlock, SwinBlockSequence
-from mmengine.model import BaseModule
+from ..PEFT import PEFT
 
 class Adapter(nn.Module):
     def __init__(self,
@@ -65,7 +65,7 @@ class Adapter(nn.Module):
         return output
    
 @MODELS.register_module() 
-class SwinTransformerAdapter(BaseModule):
+class SwinTransformerAdapter(PEFT):
     def __init__(self, **kwargs):
         super().__init__()
         # Inject module into SwinTransformer
@@ -101,27 +101,19 @@ class SwinTransformerAdapter(BaseModule):
             for target in sequence_block.blocks:
                 target: SwinBlock
                 dim = target.ffn.embed_dims
-                setattr(target, 'adapter1', Adapter(d_model=dim).cuda())
-                setattr(target, 'adapter2', Adapter(d_model=dim).cuda())
+                setattr(target, 'adaptmlp', Adapter(d_model=dim).cuda())
     
         SwinBlock.forward = forward
         
-    def freeze_parameters(self):
+    def freeze_parameters(self, mode=True):
         # Original dropout helps model
         # self.model.eval()
         for name, param in self.model.named_parameters():
-            if 'adapter' not in name:
+            if 'adaptmlp' not in name:
                 param.requires_grad = False
             else:
                 param.requires_grad = True
-                
-    def train(self, mode=True):
-        """Convert the model into training mode while keep layers freezed."""
-        super().train(mode=mode)
-        
-        self.freeze_parameters()
             
-        
     def forward(self, x):
         x = self.model(x)
         return x

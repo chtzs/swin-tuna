@@ -4,8 +4,8 @@ import torch.nn.functional as F
 
 from mmseg.registry import MODELS
 from mmseg.models.backbones.swin import SwinTransformer, SwinBlock, SwinBlockSequence
-from mmengine.model import BaseModule
 
+from ..PEFT import PEFT
 #49.31
 class MonaOp(nn.Module):
     def __init__(self, in_features):
@@ -102,7 +102,7 @@ class Mona2D(nn.Module):
         return identity + project2
 
 @MODELS.register_module()
-class SwinTransformerMona(BaseModule):
+class SwinTransformerMona(PEFT):
     def __init__(self, **kwargs):
         super().__init__()
         # Inject module into SwinTransformer
@@ -144,18 +144,12 @@ class SwinTransformerMona(BaseModule):
         SwinBlock.forward = forward
 
 
-    def freeze_parameters(self):
+    def freeze_parameters(self, mode=True):
         for name, param in self.model.named_parameters():
             if 'my_module' not in name:
                 param.requires_grad = False
             else:
                 param.requires_grad = True
-                
-    def train(self, mode=True):
-        """Convert the model into training mode while keep layers freezed."""
-        super().train(mode=mode)
-        
-        self.freeze_parameters()
             
         
     def forward(self, x):

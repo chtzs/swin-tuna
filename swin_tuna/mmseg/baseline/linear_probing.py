@@ -4,10 +4,11 @@ import torch.nn.functional as F
 
 from mmseg.registry import MODELS
 from mmseg.models.backbones.swin import SwinTransformer
-from mmengine.model import BaseModule
+
+from ..PEFT import PEFT
 
 @MODELS.register_module() 
-class SwinTransformerFixed(BaseModule):
+class SwinTransformerFixed(PEFT):
     def __init__(self, **kwargs):
         super().__init__()
         # Inject module into SwinTransformer
@@ -20,16 +21,10 @@ class SwinTransformerFixed(BaseModule):
         model = MODELS.build(kwargs)
         return model
         
-    def freeze_parameters(self):
+    def freeze_parameters(self, mode=True):
         self.model.eval()
-        for param in self.model.named_parameters():
+        for _, param in self.model.named_parameters():
             param.requires_grad = False
-                
-    def train(self, mode=True):
-        """Convert the model into training mode while keep layers freezed."""
-        super().train(mode=mode)
-        
-        self.freeze_parameters()
         
     def forward(self, x):
         x = self.model(x)
