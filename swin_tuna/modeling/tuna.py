@@ -46,7 +46,7 @@ class Tuna(nn.Module):
         # depth-wise convolution
         self.conv2d = Conv2d(hidden_dim, hidden_dim, kernel_size=conv_size, padding=conv_size // 2, groups=hidden_dim)
         self.norm = nn.LayerNorm(hidden_dim, eps=1e-6)
-        
+        self.proj = Conv2d(in_features, in_features, kernel_size=1) 
         # point-wise convolution
         self.pwconv1 = nn.Linear(in_features, hidden_dim)
         self.pwconv2 = nn.Linear(hidden_dim, in_features)
@@ -70,6 +70,7 @@ class Tuna(nn.Module):
         assert len(x.shape) == 3, 'Wrong shape!'
         
         identity = x
+        x = self.proj(x, hw_shapes)
         # Downsample
         x = self.pwconv1(x)
         # Conv

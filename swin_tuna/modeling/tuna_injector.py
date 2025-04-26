@@ -37,9 +37,10 @@ class TunaInjector:
                 # original modules
                 identity = x
                 # tuna module
-                x_tuna = self.tuna_2(identity, hw_shape)
+                # x_tuna = self.tuna_2(identity, hw_shape)
                 x = self.norm2(x)
                 x = self.ffn(x, identity=identity)
+                x_tuna = self.tuna_2(identity, hw_shape)
                 # inject back
                 x = self.tuna_x_scale2 * x + self.tuna_scale2 * x_tuna
                 
