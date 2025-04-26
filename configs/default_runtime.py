@@ -13,6 +13,6 @@ log_level = 'INFO'
 load_from = None
 resume = False
 # randomness = dict(seed=2016871355)
-randomness = dict(seed=741346109)
+# randomness = dict(seed=741346109)
 
 tta_model = dict(type='SegTTAModel')
